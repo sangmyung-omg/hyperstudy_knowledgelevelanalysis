@@ -1,0 +1,23 @@
+{% extends 'hyperstudy/base.html' %}
+{% block content %}
+    <div>
+        <h1>HyperStudy Problem List</h1>
+    </div>
+    <br>
+    {% for problem in problems %}
+    <div class="post">
+        <div>
+            <p><a href="{% url 'problem_edit' pk=problem.pk%}">문제 {{ problem.pk }} (= pk)</a></p>
+            <p>태그된 UK : {{ problem.tag_UK }}</p>
+        </div>
+        <br>
+        <p>문제 : {{ problem.problem|linebreaksbr }}</p>
+        <p>정답 (True 1 / False 0) : {{ problem.answer }}</p>
+        <br>
+        <p>작성자 : {{ problem.author }}</p>
+        <div class="date">
+            <p>published: {{ problem.published_date }}</p>
+        </div>
+    </div>
+    {% endfor %}
+{% endblock%}

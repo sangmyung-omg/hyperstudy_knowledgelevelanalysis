@@ -1,0 +1,28 @@
+{% extends 'hyperstudy/base.html' %}
+{% block content %}
+    <div>
+        <h1>HyperStudy Level Test</h1>
+    </div>
+    <br>
+    <div>
+        <strong>문제 {{ problem.pk }}</strong>
+    </div>
+<br>
+    <div>
+        {{ problem.problem }}
+    </div>
+<br>
+    <form method="post">{% csrf_token %}
+        <p>
+            <strong>정답</strong><br>
+            <input type="radio" name="answer" value="1"> True &nbsp;
+		    <input type="radio" name="answer" value="0"> False
+        </p>
+        <p>
+            <button type="submit">제출</button>
+            <button type="button" href="{% url 'welcome' %}">홈으로</button>
+        </p>
+        <input type="hidden" name="pk" value={{ problem.pk }}>
+        <input type="hidden" name="tag_UK" value={{ problem.tag_UK }}>
+    </form>
+{% endblock%}
