@@ -1,0 +1,22 @@
+{% extends 'hyperstudy/base.html' %}
+{% block content %}
+    <div>
+        <h1>HyperStudy Level Test</h1>
+    </div>
+    <br>
+    <div>
+        <h2><strong>{{ user }}</strong>님의 문자와 식 단원 지식수준 분석 결과</h2>
+    </div>
+<br>
+    <div>
+        <p>
+            잘 이해하고 있는 개념 : {{ correct_set }}
+        </p>
+    </div>
+    <div>
+        <p>
+            잘 이해하지 못한 개념 : {{ wrong_set }}
+        </p>
+    </div>
+
+{% endblock%}

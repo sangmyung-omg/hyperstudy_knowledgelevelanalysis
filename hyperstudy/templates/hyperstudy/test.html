@@ -5,7 +5,7 @@
     </div>
     <br>
     <div>
-        <strong>문제 {{ problem.pk }}</strong>
+        <strong>문제 {{ num_q }}</strong>)  <strong>{{ problem.tag_UK }}</strong> 에 대한 문제
     </div>
 <br>
     <div>
@@ -20,9 +20,11 @@
         </p>
         <p>
             <button type="submit">제출</button>
-            <button type="button" href="{% url 'welcome' %}">홈으로</button>
+            <button type="button" onclick="location.href={% url 'welcome' %}">홈으로</button>
         </p>
         <input type="hidden" name="pk" value={{ problem.pk }}>
         <input type="hidden" name="tag_UK" value={{ problem.tag_UK }}>
+        <input type="hidden" name="num_q" value={{ num_q }}>
+        <input type="hidden" name="correct_list" value={{ correct_list }}>
     </form>
 {% endblock%}

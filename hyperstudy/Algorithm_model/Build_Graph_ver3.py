@@ -1,19 +1,23 @@
 import pandas as pd
 import numpy as np
+import os
 
 ##################################################################
 # UK간 관계는 상속 / 상하위 관계만 고려하여 graph 그림.
 
 class Build_Graph():
 
-    def __init__(self, user_id, filename = 'UK_relation_table.xlsx'):
+    def __init__(self, user_id, last_response='', resource_path='C:/Django/HyperStudy/hyperstudy/resources/', filename = 'UK_relation_table.xlsx'):
         self.num_q = 1
         self.correct_set = []
         self.wrong_set = []
         self.user_id = user_id
+        self.new_answer = last_response
+        os.path.join(resource_path, filename)
         # 데이터 불러오기
-        self.data = pd.read_excel(filename)
-        print("Length of input data :", len(self.data))
+        # self.data = pd.read_excel(filename)
+        self.data = pd.read_excel(os.path.join(resource_path, filename))
+        # print("Length of input data :", len(self.data))
 
         # 'UK이름'과 '연관 UK'에 있는 모든 UK 리스트     ( 해당 단원에서 설명하는 개념이 아닌 기초 개념도 포함. ex. 문자, 식, ... )
         self.uk1 = list(self.data['UK이름'].dropna())
@@ -41,13 +45,13 @@ class Build_Graph():
             if type(self.rel_dict[k]) == list:
                 self.rel_dict[k].reverse()
 
-        print("Relation Dictionary :", self.rel_dict)
-        print("Level Dictionary :", self.level_info)
+        # print("Relation Dictionary :", self.rel_dict)
+        # print("Level Dictionary :", self.level_info)
 
         self.level_infos = []
         for i in range(len(self.level_info)):
             self.level_infos.append(self.level_info[i])
-        print(self.level_infos)
+        # print(self.level_infos)
 
 # 엑셀의 표에 나타난 관계를 그대로 dictionary 형태로 옮김
     def relation(self, row):
@@ -162,7 +166,7 @@ class Build_Graph():
 ###입력받은 uk에 대한 문제를 내고 그에 대한 정오답을 입력받아 그 결과에 따른 알고리즘을 수행함
     def q_interaction(self, uk, list):
         answer = list[self.num_q - 1]
-        if answer == 'o':   #
+        if answer == 1:   #
             self.num_q += 1
             if uk not in self.correct_set:       #이미 correct_set에 존재하는 경우 넘어가고, wrong_set에 존재하는 경우 wrong_set에서 삭제
                 self.correct_set.append(uk)
@@ -170,7 +174,7 @@ class Build_Graph():
                 self.wrong_set.remove(uk)
             self.correct_give_score(uk)     #맞춘 경우의 스코어 부여 함수 호출
 
-        elif answer == 'x':     #
+        elif answer == 0:     #
             self.num_q += 1
             if uk not in self.wrong_set:
                 self.wrong_set.append(uk)
@@ -207,8 +211,9 @@ class Build_Graph():
 #         print(3-i, "레벨", correct_set, wrong_set, uk_score_dic)
 #     return user_id, correct_set, wrong_set
 
-    def firts_problem(self):
+    def first_problem(self):
         print("문제 ", self.num_q, " : ", self.level_infos[-1][0])
+        return self.level_infos[-1][0]
 
     def whats_next(self, list):
         self.num_q = 1  # 문제 번호를 위한 인덱스
