@@ -53,6 +53,7 @@ def firsttest(request, num_q=1):
         print(response)
         if response is None:
             messages.error(request, '정답을 체크해주세요!')
+            print(request.POST.get("tag_UK") + '**')
             previous_problem = Problems.objects.filter(tag_UK=request.POST.get("tag_UK")).first()
             # return redirect(reverse('firsttest', kwargs={'problem': previous_problem, 'num_q':num_q, 'correct_list': correct_list}))
             return render(request, 'hyperstudy/test.html',
