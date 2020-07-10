@@ -51,7 +51,7 @@ def firsttest(request, num_q=1):
         correct_list = request.POST["correct_list"]                         # Build_Graph에 필요해서 계속 같이 들고 넘김
         response = request.POST.get("answer")
         print(response)
-        if response is None or response.strip() != '':
+        if response is None:
             messages.error(request, '정답을 체크해주세요!')
             previous_problem = Problems.objects.filter(tag_UK=request.POST.get("tag_UK")).first()
             # return redirect(reverse('firsttest', kwargs={'problem': previous_problem, 'num_q':num_q, 'correct_list': correct_list}))
