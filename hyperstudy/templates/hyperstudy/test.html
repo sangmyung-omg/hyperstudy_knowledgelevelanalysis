@@ -18,6 +18,14 @@
             <input type="radio" name="answer" value="1"> True &nbsp;
 		    <input type="radio" name="answer" value="0"> False
         </p>
+        {% for message in messages %}
+           <div class="alert alert-success">
+               <a class="close" href="#" data-dismiss="alert">×</a>
+
+               {{ message }}
+
+           </div>
+        {% endfor %}
         <p>
             <button type="submit">제출</button>
             <button type="button" onclick="location.href={% url 'welcome' %}">홈으로</button>
@@ -27,4 +35,5 @@
         <input type="hidden" name="num_q" value={{ num_q }}>
         <input type="hidden" name="correct_list" value={{ correct_list }}>
     </form>
+
 {% endblock%}
