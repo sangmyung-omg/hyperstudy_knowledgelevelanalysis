@@ -13,10 +13,13 @@ class Build_Graph():
         self.wrong_set = []
         self.user_id = user_id
         self.new_answer = last_response
+        # self.resource_path = resource_path
+        # pythonanywhere.com에 올릴때 용도.
+        self.resource_path = '/home/hyperstudy/hyperstudy_knowledgelevelanalysis/hyperstudy/resources/'
         os.path.join(resource_path, filename)
         # 데이터 불러오기
         # self.data = pd.read_excel(filename)
-        self.data = pd.read_excel(os.path.join(resource_path, filename))
+        self.data = pd.read_excel(os.path.join(self.resource_path, filename))
         # print("Length of input data :", len(self.data))
 
         # 'UK이름'과 '연관 UK'에 있는 모든 UK 리스트     ( 해당 단원에서 설명하는 개념이 아닌 기초 개념도 포함. ex. 문자, 식, ... )
