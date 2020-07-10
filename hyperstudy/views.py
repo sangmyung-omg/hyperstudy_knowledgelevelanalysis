@@ -57,7 +57,7 @@ def firsttest(request, num_q=1):
             # return redirect(reverse('firsttest', kwargs={'problem': previous_problem, 'num_q':num_q, 'correct_list': correct_list}))
             return render(request, 'hyperstudy/test.html',
                           {'problem': previous_problem, 'num_q': num_q, 'correct_list': correct_list})
-        print('response:', reponse)
+        print('response:', response)
         if correct_list == '[]':
             correct_list = []
         else:
