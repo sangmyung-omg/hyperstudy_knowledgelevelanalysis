@@ -31,100 +31,84 @@ def problem_edit(request, pk):
     return render(request, 'hyperstudy/problem_edit.html', {'form': form})
 
 
+# 메소드를 나눌 수도 있을 것 같은데 그냥 한 서비스 스트림이라 firsttest에 몰아 넣음.
+# 첫 배치고사라고 가정 firsttest
 def firsttest(request, num_q=1):
+    # GET : 처음 테스트 페이지 부를 때
     if request.method == "GET":
-        graph = Build_Graph('Ung')
-        next_UK = ''
-        if request.POST.get("next_UK") is None:
-            next_UK = graph.first_problem()
-        else:
-            next_UK = request.POST.get("next_UK")
-        get_object_or_404(Problems, tag_UK=next_UK)
-        problems = Problems.objects.filter(tag_UK=next_UK).first()
-        # print("length of problems :", problems.aggregate(totle_like=Count()))
+        # 테스트 시작 시 초기 설정
+        user = 'Ung'            # 후에 user 아이디 넣어줌
         num_q = 1
         correct_list = []
+
+        # 학생 지식 수준 추적 알고리즘 로딩
+        graph = Build_Graph(user)
+        first_uk = graph.first_problem()
+        # get_object_or_404(Problems, tag_UK=next_uk)           # 해당 data object(row)가 없으면 404 error 띄움
+        problems = Problems.objects.filter(tag_UK=first_uk).first()
+
+        # 여기서 correct_list가 리스트 형태로 안 넘어감 ('[]' 형태의 str로 넘어감)
         return render(request, 'hyperstudy/test.html', {'problem': problems, 'num_q': num_q, 'correct_list': correct_list})
+
+    # POST : 첫 테스트 페이지 이후 계속해서 다음 문제 불러올 때
     elif request.method == "POST":
-        user = 'Ung'
-        num_q = request.POST.get("num_q")
+        user = 'Ung'                                                        # 후에 유저 아이디로 치환
+        num_q = request.POST.get("num_q")                                   # 문제 번호 (학생에게 보여지는 문제 순서대로 1, 2, 3, ...)
         correct_list = request.POST["correct_list"]                         # Build_Graph에 필요해서 계속 같이 들고 넘김
-        response = request.POST.get("answer")
-        print(response)
+        response = request.POST.get("answer")                               # 학생이 제출한 답
+
+        # 아무 답도 고르지 않은 채 제출(submit)했을 때 - 경고 메세지
         if response is None:
             messages.error(request, '정답을 체크해주세요!')
-            print(request.POST.get("tag_UK") + '**')
-            previous_problem = Problems.objects.filter(tag_UK=request.POST.get("tag_UK")).first()
-            # return redirect(reverse('firsttest', kwargs={'problem': previous_problem, 'num_q':num_q, 'correct_list': correct_list}))
+
+            # ** 왜인지는 모르겠으나, html에서 request로 넘어올 때 띄어쓰기 있으면 띄어쓰기 앞의 str만 넘어옴. ex) '식의' of '식의 값'
+            # correct_list는 변하지 않았으므로, 현재 UK를 다시 알고리즘으로부터 구함.
+
+            # 학생 지식 수준 추적 알고리즘 로딩
+            graph = Build_Graph(user)
+            if correct_list != '[]':        # 첫 문제가 아닌 경우 whats_next(correct_list)
+                previous_uk = graph.whats_next(list(map(int, correct_list.split(','))))
+            else:           # 첫 문제인 경우 first_problem()
+                previous_uk = graph.first_problem()
+            previous_problem = Problems.objects.filter(tag_UK=previous_uk).first()
+            # 같은 페이지로 쏴줌
             return render(request, 'hyperstudy/test.html',
                           {'problem': previous_problem, 'num_q': num_q, 'correct_list': correct_list})
-        print('response:', response)
-        if correct_list == '[]':
+
+        if correct_list == '[]':                                # 첫 문제일 때
             correct_list = []
         else:
             correct_list = correct_list.split(",")              # "1,1,0,0" (str) 의 형태로 넘어오므로 ["1","1","0","0"]의 형태로 변환
             correct_list = list(map(int, correct_list))         # 각 리스트의 값을 int 형으로 변환
-        graph = Build_Graph(user)
-        problem = Problems.objects.filter(pk=request.POST.get("pk")).first()    # 정답 불러옴 : first() 전에도 이미 한개 (pk로 찾기 때문)
-        # DB에 저장된 문제 정답과 같으면 1 / 틀렸으면 0
+
+        # DB(문제 리스트)에서 해당 문제의 정답 불러옴 : first() 전에도 row 한 개 (pk로 찾아서)
+        problem = Problems.objects.filter(pk=request.POST.get("pk")).first()
+
+        # 학생의 답이 DB(문제 리스트)에 저장된 정답과 같으면 1 / 틀렸으면 0
         if response == str(problem.answer):
             correct_list.append(1)
         elif type(response) == str:
             correct_list.append(0)
 
-        # 정답 여부까지 반영하여 DB에 저장장
+        # 정답 여부까지 반영하여 DB에 저장
         test = Test_logs(problem_no=request.POST.get("pk"), tag_UK=request.POST.get("tag_UK"), user=user,
                          response=response, correct=correct_list[-1], published_date=timezone.now())
         test.save()
 
+        # 학생 지식 수준 추적 알고리즘 로딩
+        graph = Build_Graph(user)
         # 다음 문제 UK
-        next_UK = graph.whats_next(correct_list)
+        next_uk = graph.whats_next(correct_list)
 
-        # 문제 다 풀었으면,
-        if type(next_UK) is tuple:
-            return render(request, 'hyperstudy/endtest.html', {'user': user, 'correct_set': ', '.join(next_UK[0]), 'wrong_set': ', '.join(next_UK[1])})
-        print(next_UK, type(next_UK))
+        # 문제 다 풀었으면, correct_list와 wrong_list의 tuple 반환
+        if type(next_uk) is tuple:
+            return render(request, 'hyperstudy/endtest.html', {'user': user, 'correct_set': ', '.join(next_uk[0]), 'wrong_set': ', '.join(next_uk[1])})
 
-        get_object_or_404(Problems, tag_UK=next_UK)
-        next_problem = Problems.objects.filter(tag_UK=next_UK).first()
+        # 아니면 다음문제
+        get_object_or_404(Problems, tag_UK=next_uk)
+        next_problem = Problems.objects.filter(tag_UK=next_uk).first()
         # return redirect(reverse('firsttest', kwargs={'num_q': int(request.POST.get("num_q")) + 1, 'next_UK': next_problem}))
 
-        # 다시 correct_list를 보내는 str 형태로
+        # 다시 correct_list를 str 형태로
         correct_list = ','.join(list(map(str, correct_list)))                       # 7/9 pm 10:14 - correct_list가 render에서 리스트 안보내짐. => join으로 str형태로 보냄.
         return render(request, 'hyperstudy/test.html', {'problem': next_problem, 'num_q': int(num_q) + 1, 'correct_list': correct_list})
-
-
-def test(request):
-    if request.method == "POST":
-        user = 'Ung'            # 나중에 user_id 넣어줌
-        graph = Build_Graph(user)
-        UK_list = request.POST["tag_UK"]
-        if type(UK_list) is str:
-            UK_list = [UK_list]
-        print(graph.whats_next(UK_list))
-        # log = Test_logs.objects.all()
-        # form 사용 안함.
-        # form = Test_oneq_Form(request.POST, instance=log)
-        # if form.is_valid():
-        # try:
-            # test = form.save(commit=False)
-        print(request.POST)
-        print("tag_UK :", request.POST.get("tag_UK"))
-        print("answer :", request.POST.get("answer"))
-        print(request.POST.get("csrfmiddlewaretoken"))
-        test = Test_logs(problem_no = pk, tag_UK = request.POST.get("tag_UK"), user=request.POST.get("csrfmiddlewaretoken"), response = request.POST.get("answer"), correct = 1, published_date = timezone.now())
-        test.save()
-            # test.problem_no = pk
-            # test.tag_UK = request.get("tag_UK")
-            # test.user = request.user
-            # test.response = request.answer
-            # test.correct = 1
-            # test.published_date = timezone.now()
-            # return redirect('/test', {"pk":pk+1})     # 안 됨.
-        # except:
-        #     test = None
-        #     print("Exception~")
-        # redirect할 때 parameter 같이 넘기기 (https://bluejake.tistory.com/43)
-        return redirect(reverse('test', kwargs={'pk':pk+1}))
-    else:
-        return render(request, 'hyperstudy/test.html', {'problem': problems})
