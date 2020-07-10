@@ -5,3 +5,4 @@ myvenv2
 db.sqlite3
 /static
 .DS_Store
+/Algorithm_model
